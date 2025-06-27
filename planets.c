@@ -154,14 +154,14 @@ int main() {
     neptune->eccentricity = 0.0086;
 
     // Manually setting days since perihelion source: 
-    mercury->days_since_perihelion = 
-    venus->days_since_perihelion = 
-    earth->days_since_perihelion = 
-    mars->days_since_perihelion = 
-    jupiter->days_since_perihelion =;
-    saturn->days_since_perihelion = 
-    uranus->days_since_perihelion = 
-    neptune->days_since_perihelion =;
+    mercury->days_since_perihelion = 0;
+    venus->days_since_perihelion = 0;
+    earth->days_since_perihelion = 0;
+    mars->days_since_perihelion = 0;
+    jupiter->days_since_perihelion = 0;
+    saturn->days_since_perihelion = 0;
+    uranus->days_since_perihelion = 0;
+    neptune->days_since_perihelion = 0;
 
     printf("%s has %f and %f %% of Jupiter's mass and radius.\n", saturn->name, saturn->mass, saturn->radius);
     printf("%s's period is %f and its semi-major axis is %f\n", 
