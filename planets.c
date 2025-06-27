@@ -4,6 +4,9 @@
 #include <string.h>
 #include "planets.h"
 #include "cJSON.h"
+#include <math.h>
+#include <time.h>
+
 
 typedef struct planet_data {
     char name[50];
@@ -14,6 +17,7 @@ typedef struct planet_data {
     float temperature;
     float distance_light_year;
     float eccentricity; // manually set
+    time_t perihelion_date; // date of last perihelion
     float days_since_perihelion;
 } planet_data;
 
@@ -153,15 +157,14 @@ int main() {
     uranus->eccentricity = 0.0463;
     neptune->eccentricity = 0.0086;
 
-    // Manually setting days since perihelion source: 
-    mercury->days_since_perihelion = 0;
-    venus->days_since_perihelion = 0;
-    earth->days_since_perihelion = 0;
-    mars->days_since_perihelion = 0;
-    jupiter->days_since_perihelion = 0;
-    saturn->days_since_perihelion = 0;
-    uranus->days_since_perihelion = 0;
-    neptune->days_since_perihelion = 0;
+    /*
+    Thought organizer:
+    1 - determine the formula to compute each planets elipse (including semi-major-axis, period and eccentricity);
+    2 - find perihelion date to find the step 0
+    3 - Find step 0 x,y coordinates
+    4 - create function to determine planet x,y position based on time difference vs perihelion
+    */
+
 
     printf("%s has %f and %f %% of Jupiter's mass and radius.\n", saturn->name, saturn->mass, saturn->radius);
     printf("%s's period is %f and its semi-major axis is %f\n", 
