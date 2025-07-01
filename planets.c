@@ -8,9 +8,13 @@
 #include <math.h>
 #define PI 3.141592654
 
+typedef struct Coordinates {
+    double x;
+    double y;
+} coordinates_t;
 
-typedef struct planet_t {
-    char name[50];
+typedef struct Planets {
+    char name[15];
     float mass;
     float radius;
     float period;
@@ -23,34 +27,39 @@ typedef struct planet_t {
     double mean_anomaly;
     double eccentric_anomaly;
     double radial_distance;
+    coordinates_t coordinates;
 } planet_t;
 
+// Read JSON straight stolen from tutorial
 struct MemoryStruct {
   char *memory;
   size_t size;
 };
 
-double calculate_mean_anomaly(planet_t planet) {
-    double m = 2*PI*planet.days_since_perihelion/planet.period;
-
-    return m;
-}
-
-//double calculate_eccentric_anomaly(planet_t planet) { 
-//
-//    ;
-//}
-
-double calculate_radial_distance(planet_t planet) {
-    double r = planet.semi_major_axis*(1-planet.eccentricity*cos(planet.mean_anomaly));
-    return r;
-}
-
-
 cJSON *get_data_from_json(cJSON *json_item, char *info) {
     cJSON *json_info = cJSON_GetObjectItemCaseSensitive(json_item, info);
     return json_info;
 }
+
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+  size_t realsize = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+  
+  char *ptr = realloc(mem->memory, mem->size + realsize + 1);
+  if(!ptr) 
+  {
+    printf("not enough memory (realloc returned NULL)\n");
+    return 0;
+  }
+ 
+  mem->memory = ptr;
+  memcpy(&(mem->memory[mem->size]), contents, realsize);
+  mem->size += realsize;
+  mem->memory[mem->size] = 0;
+ 
+  return realsize;
+}
+
 
 // API call for planet data
 planet_t retrieve_planet_t(char *planet_name) {
@@ -128,25 +137,31 @@ planet_t retrieve_planet_t(char *planet_name) {
     return data;
 }
 
-// straight stolen from tutorial
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-  size_t realsize = size * nmemb;
-  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
-  
-  char *ptr = realloc(mem->memory, mem->size + realsize + 1);
-  if(!ptr) 
-  {
-    printf("not enough memory (realloc returned NULL)\n");
-    return 0;
-  }
- 
-  mem->memory = ptr;
-  memcpy(&(mem->memory[mem->size]), contents, realsize);
-  mem->size += realsize;
-  mem->memory[mem->size] = 0;
- 
-  return realsize;
+void set_mean_anomaly_ptr(planet_t * planet_ptr) {
+    planet_ptr->mean_anomaly = 2*PI*planet_ptr->days_since_perihelion/planet_ptr->period;
 }
+
+
+void set_eccentric_anomaly(planet_t* planet_ptr) { 
+    // using approximation E≈M+esinM
+    planet_ptr->eccentric_anomaly = (double) planet_ptr->mean_anomaly + planet_ptr->eccentricity * sin(planet_ptr->mean_anomaly);
+
+}
+
+
+void set_radial_distance(planet_t* planet_ptr) {
+    
+    planet_ptr->radial_distance = planet_ptr->semi_major_axis * (1 - planet_ptr->eccentric_anomaly * cos(planet_ptr->mean_anomaly));
+}
+
+void set_coordinates(planet_t* planet_ptr) {
+    set_mean_anomaly_ptr(planet_ptr);
+    set_eccentric_anomaly(planet_ptr); 
+    set_radial_distance(planet_ptr);
+    planet_ptr->coordinates.x = (double)planet_ptr->radial_distance * (cos(planet_ptr->mean_anomaly) - planet_ptr->eccentric_anomaly);
+    planet_ptr->coordinates.y = (double)planet_ptr->radial_distance * (sin(planet_ptr->mean_anomaly) - planet_ptr->eccentric_anomaly);
+}
+
 
 int main() {
         
@@ -187,14 +202,32 @@ int main() {
     mars->perihelion_date = "09/05/2024"; // source https://ssd.jpl.nasa.gov/horizons/app.html#/
     jupiter->perihelion_date = "21/01/2023"; // source wikipedia (confirmed by https://ssd.jpl.nasa.gov/horizons/app.html#/)
     saturn->perihelion_date = "29/11/2032"; // source wikipedia (confirmed by https://ssd.jpl.nasa.gov/horizons/app.html#/)
-    uranus->perihelion_date = "19/08/2050"; // source wikipedia
-    neptune->perihelion_date = "04/09/2042"; // source wikipedia
+    uranus->perihelion_date = "19/08/2050"; // source wikipedia (too lazy to confirm)
+    neptune->perihelion_date = "04/09/2042"; // source wikipedia (too lazy to confirm)
 
-    planet_t planet = *saturn;
 
-    printf("%s has %f and %f %% of Jupiter's mass and radius.\n", planet.name, planet.mass, planet.radius);
-    printf("%s's period is %f and its semi-major axis is %f\n", 
-           planet.name, planet.period, planet.semi_major_axis);
+    // testing days_since_perihelion = 0
+
+    
+    planet_t* planets[] = {mercury,venus,earth,mars,jupiter,saturn,uranus,neptune};
+
+    for (int i = 0; i < 8; i++) {
+        planets[i]->days_since_perihelion = 0;
+        set_coordinates(planets[i]);
+        printf("When %s is the closest to the sun (aka perihelion), it is located at (%f,%f) relative to the sun (0,0)\n", planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.x);
+    }
+
+
+    // char user_date[11];
+    // printf("Enter a date in the dd/mm/yyyy format:");
+    // scanf("%10s", user_date);
+
+    //planet_t planet = *uranus;
+
+    //printf("%s has %f and %f %% of Jupiter's mass and radius.\n", planet.name, planet.mass, planet.radius);
+    //printf("%s's period is %f days and its semi-major axis is %f\n", 
+    //       planet.name, planet.period, planet.semi_major_axis);
+
 
     free(venus);
     free(earth);

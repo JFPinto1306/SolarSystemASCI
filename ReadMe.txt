@@ -3,9 +3,9 @@ Why not something that takes a date and displays the position of the planets on 
 
 /*
 Thought organizer:
-1 - determine the formula to compute each planets elipse (including semi-major-axis, period and eccentricity);
-2 - find perihelion date to find the step 0
-3 - Find step 0 x,y coordinates
+1 - determine the formula to compute each planets elipse (including semi-major-axis, period and eccentricity) -> check;
+2 - find perihelion date to find the step 0 -> check; 
+3 - Find step 0 x,y coordinates -> need newton-raphson method to solve for eccentric anomaly;
 4 - create function to determine planet x,y position based on time difference vs perihelion
 */
 ​
