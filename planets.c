@@ -27,6 +27,7 @@ typedef struct Planets {
     double mean_anomaly;
     double eccentric_anomaly;
     double radial_distance;
+    double true_anomaly;
     coordinates_t coordinates;
 } planet_t;
 
@@ -141,26 +142,36 @@ void set_mean_anomaly_ptr(planet_t * planet_ptr) {
     planet_ptr->mean_anomaly = 2*PI*planet_ptr->days_since_perihelion/planet_ptr->period;
 }
 
-
 void set_eccentric_anomaly(planet_t* planet_ptr) { 
     // using approximation E≈M+esinM
     planet_ptr->eccentric_anomaly = (double) planet_ptr->mean_anomaly + planet_ptr->eccentricity * sin(planet_ptr->mean_anomaly);
-
 }
 
-
 void set_radial_distance(planet_t* planet_ptr) {
-    
-    planet_ptr->radial_distance = planet_ptr->semi_major_axis * (1 - planet_ptr->eccentric_anomaly * cos(planet_ptr->mean_anomaly));
+    planet_ptr->radial_distance = planet_ptr->semi_major_axis * (1 - planet_ptr->eccentricity * cos(planet_ptr->eccentric_anomaly));
+}
+
+void set_true_anomaly(planet_t* planet_ptr) {
+    // tan(ν)= sqrt(1−e**2) * sin(E) / cos(E)−e 
+
+    double e = planet_ptr->eccentricity;
+    double E = planet_ptr->eccentric_anomaly;
+
+    // Calculate the true anomaly (nu)
+    double true_anomaly = atan2(sqrt(1 - e * e) * sin(E), cos(E) - e);
+    planet_ptr->true_anomaly = true_anomaly;
+
 }
 
 void set_coordinates(planet_t* planet_ptr) {
     set_mean_anomaly_ptr(planet_ptr);
     set_eccentric_anomaly(planet_ptr); 
     set_radial_distance(planet_ptr);
-    planet_ptr->coordinates.x = (double)planet_ptr->radial_distance * (cos(planet_ptr->mean_anomaly) - planet_ptr->eccentric_anomaly);
-    planet_ptr->coordinates.y = (double)planet_ptr->radial_distance * (sin(planet_ptr->mean_anomaly) - planet_ptr->eccentric_anomaly);
+    set_true_anomaly(planet_ptr);
+    planet_ptr->coordinates.x = planet_ptr->radial_distance * cos(planet_ptr->true_anomaly);
+    planet_ptr->coordinates.y = planet_ptr->radial_distance * sin(planet_ptr->true_anomaly);
 }
+
 
 
 int main() {
@@ -212,9 +223,12 @@ int main() {
     planet_t* planets[] = {mercury,venus,earth,mars,jupiter,saturn,uranus,neptune};
 
     for (int i = 0; i < 8; i++) {
-        planets[i]->days_since_perihelion = 0;
+        planets[i]->days_since_perihelion = 365;
         set_coordinates(planets[i]);
-        printf("When %s is the closest to the sun (aka perihelion), it is located at (%f,%f) relative to the sun (0,0)\n", planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.x);
+        printf("\n\nEccentric Anomaly (E) for %s: %f radians\n", planets[i]->name, planets[i]->eccentric_anomaly);
+        printf("Radial Distance (r) for %s: %f AU\n", planets[i]->name, planets[i]->radial_distance);
+        printf("cos(E): %f, sin(E): %f\n", cos(planets[i]->eccentric_anomaly), sin(planets[i]->eccentric_anomaly));
+        printf("%f days after its perihelion, %s is located at (%f,%f) relative to the sun (0,0)\n\n", planets[i]->days_since_perihelion, planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.y);
     }
 
 
