@@ -4,11 +4,12 @@
 #include <string.h>
 #include "planets.h"
 #include "cJSON.h"
-#include <math.h>
 #include <time.h>
+#include <math.h>
+#define PI 3.141592654
 
 
-typedef struct planet_data {
+typedef struct planet_t {
     char name[50];
     float mass;
     float radius;
@@ -17,21 +18,42 @@ typedef struct planet_data {
     float temperature;
     float distance_light_year;
     float eccentricity; // manually set
-    time_t perihelion_date; // date of last perihelion
+    char* perihelion_date; // date of last perihelion
     float days_since_perihelion;
-} planet_data;
+    double mean_anomaly;
+    double eccentric_anomaly;
+    double radial_distance;
+} planet_t;
 
 struct MemoryStruct {
   char *memory;
   size_t size;
 };
 
+double calculate_mean_anomaly(planet_t planet) {
+    double m = 2*PI*planet.days_since_perihelion/planet.period;
+
+    return m;
+}
+
+//double calculate_eccentric_anomaly(planet_t planet) { 
+//
+//    ;
+//}
+
+double calculate_radial_distance(planet_t planet) {
+    double r = planet.semi_major_axis*(1-planet.eccentricity*cos(planet.mean_anomaly));
+    return r;
+}
+
+
 cJSON *get_data_from_json(cJSON *json_item, char *info) {
     cJSON *json_info = cJSON_GetObjectItemCaseSensitive(json_item, info);
     return json_info;
 }
 
-planet_data retrieve_planet_data(char *planet_name) {
+// API call for planet data
+planet_t retrieve_planet_t(char *planet_name) {
     
     char* api_key = "V4hB8TpUJAg1cV1+J5/DVA==iHCe8S41JONK282u";
     char* base_url = "https://api.api-ninjas.com/v1/planets?name=";
@@ -94,7 +116,7 @@ planet_data retrieve_planet_data(char *planet_name) {
     cJSON *temperature = get_data_from_json(json_item, "temperature");
     cJSON *distance_light_year = get_data_from_json(json_item, "distance_light_year");
 
-    planet_data data;
+    planet_t data;
     strcpy(data.name, name->valuestring);
     data.mass = mass->valuedouble * 100;
     data.radius = radius->valuedouble * 100;
@@ -128,24 +150,24 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 int main() {
         
-    planet_data *mercury = malloc(sizeof(planet_data));
-    planet_data *venus = malloc(sizeof(planet_data));
-    planet_data *earth = malloc(sizeof(planet_data));          
-    planet_data *mars = malloc(sizeof(planet_data));
-    planet_data *jupiter = malloc(sizeof(planet_data));
-    planet_data *saturn = malloc(sizeof(planet_data));
-    planet_data *uranus = malloc(sizeof(planet_data));
-    planet_data *neptune = malloc(sizeof(planet_data));
+    planet_t *mercury = malloc(sizeof(planet_t));
+    planet_t *venus = malloc(sizeof(planet_t));
+    planet_t *earth = malloc(sizeof(planet_t));          
+    planet_t *mars = malloc(sizeof(planet_t));
+    planet_t *jupiter = malloc(sizeof(planet_t));
+    planet_t *saturn = malloc(sizeof(planet_t));
+    planet_t *uranus = malloc(sizeof(planet_t));
+    planet_t *neptune = malloc(sizeof(planet_t));
 
     // char* planet_name = "Mars";
-    *mercury = retrieve_planet_data("Mercury");
-    *venus = retrieve_planet_data("Venus");
-    *earth = retrieve_planet_data("Earth");
-    *mars = retrieve_planet_data("Mars");
-    *jupiter = retrieve_planet_data("Jupiter");
-    *saturn = retrieve_planet_data("Saturn");
-    *uranus = retrieve_planet_data("Uranus");
-    *neptune = retrieve_planet_data("Neptune");
+    *mercury = retrieve_planet_t("Mercury");
+    *venus = retrieve_planet_t("Venus");
+    *earth = retrieve_planet_t("Earth");
+    *mars = retrieve_planet_t("Mars");
+    *jupiter = retrieve_planet_t("Jupiter");
+    *saturn = retrieve_planet_t("Saturn");
+    *uranus = retrieve_planet_t("Uranus");
+    *neptune = retrieve_planet_t("Neptune");
 
     // Manually setting eccentricities source: https://nssdc.gsfc.nasa.gov/planetary/factsheet/
     mercury->eccentricity = 0.2056;
@@ -157,18 +179,22 @@ int main() {
     uranus->eccentricity = 0.0463;
     neptune->eccentricity = 0.0086;
 
-    /*
-    Thought organizer:
-    1 - determine the formula to compute each planets elipse (including semi-major-axis, period and eccentricity);
-    2 - find perihelion date to find the step 0
-    3 - Find step 0 x,y coordinates
-    4 - create function to determine planet x,y position based on time difference vs perihelion
-    */
+    // Manually setting perihelion dates. 
 
+    mercury->perihelion_date = "03/06/2025"; // source https://ssd.jpl.nasa.gov/horizons/app.html#/ -> by enabling the "heliocentric range & range rate" setting in the output, and recording what times that reaches a minimum
+    venus->perihelion_date = "20/02/2025"; // source https://ssd.jpl.nasa.gov/horizons/app.html#/
+    earth->perihelion_date = "04/01/2025"; // source https://www.timeanddate.com/astronomy/perihelion-aphelion-solstice.html
+    mars->perihelion_date = "09/05/2024"; // source https://ssd.jpl.nasa.gov/horizons/app.html#/
+    jupiter->perihelion_date = "21/01/2023"; // source wikipedia (confirmed by https://ssd.jpl.nasa.gov/horizons/app.html#/)
+    saturn->perihelion_date = "29/11/2032"; // source wikipedia (confirmed by https://ssd.jpl.nasa.gov/horizons/app.html#/)
+    uranus->perihelion_date = "19/08/2050"; // source wikipedia
+    neptune->perihelion_date = "04/09/2042"; // source wikipedia
 
-    printf("%s has %f and %f %% of Jupiter's mass and radius.\n", saturn->name, saturn->mass, saturn->radius);
+    planet_t planet = *saturn;
+
+    printf("%s has %f and %f %% of Jupiter's mass and radius.\n", planet.name, planet.mass, planet.radius);
     printf("%s's period is %f and its semi-major axis is %f\n", 
-           saturn->name, saturn->period, saturn->semi_major_axis);
+           planet.name, planet.period, planet.semi_major_axis);
 
     free(venus);
     free(earth);
