@@ -225,9 +225,9 @@ int main() {
     for (int i = 0; i < 8; i++) {
         planets[i]->days_since_perihelion = 365;
         set_coordinates(planets[i]);
-        printf("\n\nEccentric Anomaly (E) for %s: %f radians\n", planets[i]->name, planets[i]->eccentric_anomaly);
-        printf("Radial Distance (r) for %s: %f AU\n", planets[i]->name, planets[i]->radial_distance);
-        printf("cos(E): %f, sin(E): %f\n", cos(planets[i]->eccentric_anomaly), sin(planets[i]->eccentric_anomaly));
+        // printf("\n\nEccentric Anomaly (E) for %s: %f radians\n", planets[i]->name, planets[i]->eccentric_anomaly);
+        // printf("Radial Distance (r) for %s: %f AU\n", planets[i]->name, planets[i]->radial_distance);
+        // printf("cos(E): %f, sin(E): %f\n", cos(planets[i]->eccentric_anomaly), sin(planets[i]->eccentric_anomaly));
         printf("%f days after its perihelion, %s is located at (%f,%f) relative to the sun (0,0)\n\n", planets[i]->days_since_perihelion, planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.y);
     }
 
