@@ -7,6 +7,9 @@
 #include <time.h>
 #include <math.h>
 #define PI 3.141592654
+#define GRID_WIDTH 200
+#define GRID_HEIGHT 50
+#define MAX_RANGE 35.0 // in AU, adjust as needed
 
 // Coordinates
 typedef struct Coordinates {
@@ -37,6 +40,7 @@ typedef struct Planets {
     double radial_distance;
     double true_anomaly;
     coordinates_t coordinates;
+    char symbol; // symbol for ASCII representation
 } planet_t;
 
 // API tutorial
@@ -215,6 +219,101 @@ void set_days_since_perihelion(planet_t* planet_ptr, date_t* user_date) {
 
 }
 
+// Draw orbital ellipse for a planet with specific scale
+void draw_orbit(char grid[GRID_HEIGHT][GRID_WIDTH], planet_t* planet, double max_range) {
+    double a = planet->semi_major_axis;  // semi-major axis
+    double b = a * sqrt(1 - planet->eccentricity * planet->eccentricity);  // semi-minor axis
+    
+    // Draw ellipse using parametric equations
+    for (double theta = 0; theta < 2 * PI; theta += 0.05) {
+        double x = a * cos(theta);
+        double y = b * sin(theta);
+        
+        // Convert to grid coordinates
+        int grid_x = (int)((x + max_range) * GRID_WIDTH / (2 * max_range));
+        int grid_y = (int)((y + max_range) * GRID_HEIGHT / (2 * max_range));
+        
+        if (grid_x >= 0 && grid_x < GRID_WIDTH && grid_y >= 0 && grid_y < GRID_HEIGHT) {
+            if (grid[grid_y][grid_x] == ' ') {  // Only draw if cell is empty
+                grid[grid_y][grid_x] = '/';
+            }
+        }
+    }
+}
+
+// Draw solar system with specific scale
+void draw_solar_system_with_scale(planet_t* planets[], int num_planets, char* date, double max_range) {
+    // Initialize grid with spaces
+    char grid[GRID_HEIGHT][GRID_WIDTH];
+    for (int i = 0; i < GRID_HEIGHT; i++) {
+        for (int j = 0; j < GRID_WIDTH; j++) {
+            grid[i][j] = ' ';
+        }
+    }
+    
+    // Draw orbital paths first (only for planets within range)
+    for (int i = 0; i < num_planets; i++) {
+        if (planets[i]->semi_major_axis <= max_range) {
+            draw_orbit(grid, planets[i], max_range);
+        }
+    }
+    
+    // Place sun at center
+    int sun_x = (int)((0 + max_range) * GRID_WIDTH / (2 * max_range));
+    int sun_y = (int)((0 + max_range) * GRID_HEIGHT / (2 * max_range));
+    if (sun_x >= 0 && sun_x < GRID_WIDTH && sun_y >= 0 && sun_y < GRID_HEIGHT) {
+        grid[sun_y][sun_x] = '*';
+    }
+    
+    // Place planets (only those within range)
+    for (int i = 0; i < num_planets; i++) {
+        double planet_dist = sqrt(planets[i]->coordinates.x * planets[i]->coordinates.x + 
+                                 planets[i]->coordinates.y * planets[i]->coordinates.y);
+        
+        if (planet_dist <= max_range) {
+            int planet_x = (int)((planets[i]->coordinates.x + max_range) * GRID_WIDTH / (2 * max_range));
+            int planet_y = (int)((planets[i]->coordinates.y + max_range) * GRID_HEIGHT / (2 * max_range));
+            
+            if (planet_x >= 0 && planet_x < GRID_WIDTH && planet_y >= 0 && planet_y < GRID_HEIGHT) {
+                grid[planet_y][planet_x] = planets[i]->symbol;
+            }
+        }
+    }
+    
+    // Print the grid
+    printf("Scale: %.1f AU across\n\n", 2 * max_range);
+    
+    for (int i = 0; i < GRID_HEIGHT; i++) {
+        for (int j = 0; j < GRID_WIDTH; j++) {
+            printf("%c", grid[i][j]);
+        }
+        printf("\n");
+    }
+    
+    // Print legend for visible planets only
+    printf("\nVisible: * = Sun, / = Orbital paths\n");
+    for (int i = 0; i < num_planets; i++) {
+        double planet_dist = sqrt(planets[i]->coordinates.x * planets[i]->coordinates.x + 
+                                 planets[i]->coordinates.y * planets[i]->coordinates.y);
+        if (planet_dist <= max_range) {
+            printf("%c = %s ", planets[i]->symbol, planets[i]->name);
+        }
+    }
+    printf("\n\n");
+}
+
+// Main dual-view function
+void draw_solar_system_dual_view(planet_t* planets[], int num_planets, char* date) {
+    printf("\nSolar System on %s\n", date);
+    printf("==================================================\n");
+    
+    printf("\n=== INNER SOLAR SYSTEM ===\n");
+    draw_solar_system_with_scale((planet_t* []){planets[0], planets[1], planets[2], planets[3]}, 4, date, 3.5);
+
+    printf("\n=== OUTER SOLAR SYSTEM ===\n");
+    draw_solar_system_with_scale((planet_t* []){planets[4], planets[5], planets[6], planets[7]}, 4, date, 35.0);
+}
+
 int main() {
         
     planet_t *mercury = malloc(sizeof(planet_t));
@@ -258,9 +357,20 @@ int main() {
     neptune->perihelion_date = (date_t){4, 9, 2042}; // source wikipedia (too lazy to confirm)
 
 
+    // Symbols for planets
+    mercury->symbol = 'M';
+    venus->symbol = 'V';
+    earth->symbol = 'E';
+    mars->symbol = 'R';  // 'M' is taken by Mercury
+    jupiter->symbol = 'J';
+    saturn->symbol = 'S';
+    uranus->symbol = 'U';
+    neptune->symbol = 'N';
+
     char user_date[11];
     printf("Enter a date in the dd/mm/yyyy format:\n");
     scanf("%10s", user_date);
+    // char user_date[11] = "13/06/2025"; 
 
     
     // Convert user_date to a struct tm
@@ -275,6 +385,9 @@ int main() {
 
     date_t user_date_conv = {day, month, year};
 
+    // manual date before prod
+    // date_t user_date_conv = {13, 7, 2025};
+
     planet_t* planets[] = {mercury,venus,earth,mars,jupiter,saturn,uranus,neptune};
         
     for (int i = 0; i < 8; i++) {
@@ -283,10 +396,12 @@ int main() {
         // printf("\n\nEccentric Anomaly (E) for %s: %f radians\n", planets[i]->name, planets[i]->eccentric_anomaly);
         // printf("Radial Distance (r) for %s: %f AU\n", planets[i]->name, planets[i]->radial_distance);
         // printf("cos(E): %f, sin(E): %f\n", cos(planets[i]->eccentric_anomaly), sin(planets[i]->eccentric_anomaly));
-        printf("At %s, %s is located at (%f,%f) relative to the sun (0,0)\n\n", user_date, planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.y);
+        // printf("At %s, %s is located at (%f,%f) relative to the sun (0,0)\n\n", user_date, planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.y);
     }
 
+    draw_solar_system_dual_view(planets, 8, user_date);
 
+    free(mercury);
     free(venus);
     free(earth);
     free(mars);
