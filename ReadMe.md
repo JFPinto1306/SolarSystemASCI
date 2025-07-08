@@ -35,10 +35,18 @@ brew install gcc curl
 
 1. **Clone or Download the Repository**
 
+
+2. **Navigate to the project directory**
+
+   ```bash
+   cd {your_path_to_folder}/SolarSystemASCI
+   ```     
+
 2. **Compile the Program**
 
    Run the provided script:
    ```bash
+   cd {your_path_to_folder}/SolarSystemASCI
    ./main.sh
    ```
 
