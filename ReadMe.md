@@ -22,17 +22,13 @@ Why in C? Because learning about space stuff while being a business major wasn't
 ### Installation on macOS
 
 ```bash
-brew install curl
+# Install Homebrew if you don't have it:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install gcc (C compiler) and curl library
+brew install gcc curl
 # cJSON is included as source; no extra install needed
 ```
-
-### Installation on Ubuntu/Debian
-
-```bash
-sudo apt-get update
-sudo apt-get install build-essential libcurl4-openssl-dev
-```
-
 ---
 
 ## How to Use
@@ -69,6 +65,16 @@ sudo apt-get install build-essential libcurl4-openssl-dev
   - The program does not account for orbital inclinations or perturbations.
   
 - **ASCII Art**: Each planet is represented by a unique symbol. The Sun is marked with `*`, and orbital paths with `/`.
+
+---
+
+## Limitations/Next Steps
+
+- **C Compiler Required**: You must have a C compiler (such as gcc) installed to build and run this project. Precompiled binaries are not provided.
+- **Windows Compatibility**: The provided scripts and instructions are for Unix-like systems (macOS, Linux). On Windows, you will need to install a compatible C compiler (e.g., MinGW or MSVC), required libraries, and compile manually. The `main.sh` script will not run natively on Windows Command Prompt or PowerShell; use WSL, Git Bash, or adapt the build steps.
+- **Terminal Output**: The ASCII art is designed for standard terminal sizes and may not display correctly in all terminal emulators or with non-monospace fonts.
+
+---
 
 ---
 
