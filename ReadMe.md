@@ -33,14 +33,11 @@ brew install gcc curl
 
 ## How to Use
 
-1. **Clone or Download the Repository**
-
-
-2. **Navigate to the project directory**
-
+1. **Clone or Download the Repository and Navigate to project directory**
    ```bash
-   cd {your_path_to_folder}/SolarSystemASCI
-   ```     
+   git clone https://github.com/JFPinto1306/SolarSystemASCI.git
+   cd SolarSystemASCI
+   ```
 
 2. **Compile the Program**
 
