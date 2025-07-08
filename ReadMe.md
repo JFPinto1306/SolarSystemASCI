@@ -43,7 +43,6 @@ brew install gcc curl
 
    Run the provided script:
    ```bash
-   cd {your_path_to_folder}/SolarSystemASCI
    ./main.sh
    ```
 
