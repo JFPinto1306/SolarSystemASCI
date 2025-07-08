@@ -7,8 +7,8 @@
 #include <time.h>
 #include <math.h>
 #define PI 3.141592654
-#define GRID_WIDTH 200
-#define GRID_HEIGHT 50
+#define GRID_WIDTH 150
+#define GRID_HEIGHT 40
 #define MAX_RANGE 35.0 // in AU, adjust as needed
 
 // Coordinates
@@ -242,7 +242,7 @@ void draw_orbit(char grid[GRID_HEIGHT][GRID_WIDTH], planet_t* planet, double max
 }
 
 // Draw solar system with specific scale
-void draw_solar_system_with_scale(planet_t* planets[], int num_planets, char* date, double max_range) {
+void draw_solar_system_with_scale(planet_t* planets[], int num_planets, double max_range) {
     // Initialize grid with spaces
     char grid[GRID_HEIGHT][GRID_WIDTH];
     for (int i = 0; i < GRID_HEIGHT; i++) {
@@ -303,15 +303,15 @@ void draw_solar_system_with_scale(planet_t* planets[], int num_planets, char* da
 }
 
 // Main dual-view function
-void draw_solar_system_dual_view(planet_t* planets[], int num_planets, char* date) {
+void draw_solar_system_dual_view(planet_t* planets[], char* date) {
     printf("\nSolar System on %s\n", date);
     printf("==================================================\n");
     
     printf("\n=== INNER SOLAR SYSTEM ===\n");
-    draw_solar_system_with_scale((planet_t* []){planets[0], planets[1], planets[2], planets[3]}, 4, date, 3.5);
+    draw_solar_system_with_scale((planet_t* []){planets[0], planets[1], planets[2], planets[3]}, 4, 3.5);
 
     printf("\n=== OUTER SOLAR SYSTEM ===\n");
-    draw_solar_system_with_scale((planet_t* []){planets[4], planets[5], planets[6], planets[7]}, 4, date, 35.0);
+    draw_solar_system_with_scale((planet_t* []){planets[4], planets[5], planets[6], planets[7]}, 4, 35.0);
 }
 
 int main() {
@@ -378,7 +378,7 @@ int main() {
     sscanf(user_date, "%d/%d/%d", &day, &month, &year);
     
     // write some validations for me
-    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900) {
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1000) {
         fprintf(stderr, "Invalid date. Please enter a valid date in the dd/mm/yyyy format.\n");
         return 1;
     }
@@ -399,7 +399,7 @@ int main() {
         // printf("At %s, %s is located at (%f,%f) relative to the sun (0,0)\n\n", user_date, planets[i]->name, planets[i]->coordinates.x, planets[i]->coordinates.y);
     }
 
-    draw_solar_system_dual_view(planets, 8, user_date);
+    draw_solar_system_dual_view(planets, user_date);
 
     free(mercury);
     free(venus);
