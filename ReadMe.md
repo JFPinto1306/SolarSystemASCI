@@ -52,7 +52,16 @@ brew install gcc curl
 
 4. **View the Output**
 
-   The terminal will display ASCII diagrams of the inner and outer solar system, showing the positions of the planets for your chosen date.
+   The terminal will display ASCII diagrams of the inner and outer solar system, showing the positions of the planets for your chosen date:
+
+
+<img width="1040" alt="Screenshot 2025-07-08 at 09 45 18" src="https://github.com/user-attachments/assets/87db67f4-98a1-4776-993e-06cdba2fb53f" />
+
+<img width="1040" alt="Screenshot 2025-07-08 at 09 45 27" src="https://github.com/user-attachments/assets/fcf70b7b-af37-433b-ab7a-0d08bfddb58c" />
+
+
+
+
 
 ---
 
